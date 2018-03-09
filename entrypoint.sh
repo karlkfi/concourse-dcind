@@ -79,6 +79,8 @@ start_docker() {
     docker_opts+=' --data-root /scratch/docker'
   fi
 
+  rm "${DOCKERD_PID_FILE}"
+  touch "${DOCKERD_LOG_FILE}"
   dockerd ${docker_opts} --pidfile "${DOCKERD_PID_FILE}" &>"${DOCKERD_LOG_FILE}" &
 }
 
@@ -119,7 +121,7 @@ stop_docker() {
     return 0
   fi
   local docker_pid="$(cat ${DOCKERD_PID_FILE})"
-  if [ -z "${docker_pid}" ]; then
+  if [[ -z "${docker_pid}" ]]; then
     return 0
   fi
   echo "Terminating Docker daemon"
@@ -129,8 +131,8 @@ stop_docker() {
 }
 
 start_docker
-trap stop_docker EXIT
 sleep 1
+trap stop_docker EXIT
 await_docker
 
 # do not exec, because exec disables traps
