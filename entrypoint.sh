@@ -79,8 +79,7 @@ start_docker() {
     docker_opts+=' --data-root /scratch/docker'
   fi
 
-  dockerd ${docker_opts} &>"${DOCKERD_LOG_FILE}" &
-  echo $! > "${DOCKERD_PID_FILE}"
+  dockerd ${docker_opts} --pidfile "${DOCKERD_PID_FILE}" &>"${DOCKERD_LOG_FILE}" &
 }
 
 # Wait for docker daemon to be healthy
