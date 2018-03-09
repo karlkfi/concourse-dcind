@@ -18,8 +18,6 @@ Unlike meAmidos/dcind, this image...
 - Accepts arbitrary dockerd arguments via optional `DOCKER_OPTS` environment variable.
 - Passes through `--garden-mtu` from the parent Gardian container if `--mtu` is not specified in `DOCKER_OPTS`.
 - Sets `--data-root /scratch/docker` to bypass the graph filesystem if `--data-root` is not specified in `DOCKER_OPTS`.
-- Stores pid in DOCKERD_PID_FILE (default: /var/run/docker.pid)
-- Logs to DOCKERD_LOG_FILE (default: /var/log/docker.log)
 
 ## Build
 
