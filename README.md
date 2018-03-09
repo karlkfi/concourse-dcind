@@ -15,7 +15,6 @@ Unlike meAmidos/dcind, this image...
 - Does not require the user to manually start docker.
 - Uses errexit, pipefail, and nounset.
 - Configures timeout (`DOCKERD_TIMEOUT`) on dockerd start to account for mis-configuration (docker log will be output).
-- Configures timeout (`DOCKERD_TIMEOUT`) on dockerd stop to account for hung dockerd.
 - Accepts arbitrary dockerd arguments via optional `DOCKER_OPTS` environment variable.
 - Passes through `--garden-mtu` from the parent Gardian container if `--mtu` is not specified in `DOCKER_OPTS`.
 - Sets `--data-root /scratch/docker` to bypass the graph filesystem if `--data-root` is not specified in `DOCKER_OPTS`.

@@ -9,7 +9,7 @@ set -o errexit -o pipefail -o nounset -o xtrace
 DOCKERD_PID_FILE="${DOCKERD_PID_FILE:-/var/run/docker.pid}"
 # Logs to DOCKERD_LOG_FILE (default: /var/log/docker.log)
 DOCKERD_LOG_FILE="${DOCKERD_LOG_FILE:-/var/log/docker.log}"
-# Waits DOCKERD_TIMEOUT seconds for startup and teardown (default: 60)
+# Waits DOCKERD_TIMEOUT seconds for startup (default: 60)
 DOCKERD_TIMEOUT="${DOCKERD_TIMEOUT:-60}"
 # Accepts optional DOCKER_OPTS (default: --data-root /scratch/docker)
 DOCKER_OPTS="${DOCKER_OPTS:-}"
@@ -114,9 +114,7 @@ await_docker() {
 }
 
 # Gracefully stop Docker daemon.
-# Kill after DOCKERD_TIMEOUT second timeout
 stop_docker() {
-  local timeout="${DOCKERD_TIMEOUT}"
   if ! [[ -f "${DOCKERD_PID_FILE}" ]]; then
     return 0
   fi
@@ -126,12 +124,8 @@ stop_docker() {
   fi
   echo "Terminating Docker daemon"
   kill -TERM ${docker_pid}
-  echo "Waiting ${timeout} seconds for Docker daemon to exit"
-  timeout ${timeout}s wait ${docker_pid}
-  if kill -0 ${docker_pid}; then
-    echo "Killing Docker daemon"
-    kill -9 ${docker_pid}
-  fi
+  echo "Waiting for Docker daemon to exit"
+  wait ${docker_pid}
 }
 
 start_docker
