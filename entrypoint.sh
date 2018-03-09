@@ -56,8 +56,8 @@ sanitize_cgroups() {
 
 # Setup container environment and start docker daemon in the background.
 start_docker() {
-  mkdir -p /var/log
-  mkdir -p /var/run
+  mkdir -p "$(dirname "${DOCKERD_PID_FILE}")"
+  mkdir -p "$(dirname "${DOCKERD_LOG_FILE}")"
 
   sanitize_cgroups
 
@@ -88,7 +88,6 @@ start_docker() {
 await_docker() {
   local timeout="${DOCKERD_TIMEOUT}"
   echo "Waiting ${timeout} seconds for Docker to be available"
-  local docker_pid="$(cat "${DOCKERD_PID_FILE}")"
   local start=${SECONDS}
   (( timeout += start ))
   until docker info &>/dev/null; do
@@ -98,7 +97,7 @@ await_docker() {
       cat >&2 /var/log/dockerd.log
       exit 1
     fi
-    if ! kill -0 ${docker_pid}; then
+    if [[ -f "${DOCKERD_PID_FILE}" ]] && ! kill -0 $(cat "${DOCKERD_PID_FILE}"); then
       echo >&2 'Docker daemon failed to start.'
       echo >&2 '---DOCKERD LOGS---'
       cat >&2 /var/log/dockerd.log
@@ -115,6 +114,9 @@ await_docker() {
 # Kill after DOCKERD_TIMEOUT second timeout
 stop_docker() {
   local timeout="${DOCKERD_TIMEOUT}"
+  if ! [[ -f "${DOCKERD_PID_FILE}" ]]; then
+    return 0
+  fi
   local docker_pid="$(cat ${DOCKERD_PID_FILE})"
   if [ -z "${docker_pid}" ]; then
     return 0
