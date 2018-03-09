@@ -33,36 +33,34 @@ docker build -t karlkfi/concourse-dcind .
 Here is an example of a Concourse [job](http://concourse.ci/concepts.html) that uses ```karlkfi/concourse-dcind``` image to run a bunch of containers in a task, and then runs the integration test suite. You can find a full version of this example in the [```example```](example) directory.
 
 ```yaml
-  - name: integration
-    plan:
-      - aggregate:
-        - get: code
-          params:
-            depth: 1
-          passed:
-          - unit-tests
-          trigger: true
-      - task: integration-tests
-        privileged: true
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source:
-              repository: karlkfi/concourse-dcind
-          inputs:
-            - name: code
-          run:
-            path: bash
-            args:
-              - -ceux
-              - |
-                # start containers
-                docker-compose -f code/example/integration.yml run tests
-                # stop and remove containers
-                docker-compose -f code/example/integration.yml down
-                # remove volumes
-                docker volume rm $(docker volume ls -q)
-
-
+jobs:
+- name: integration
+  plan:
+  - get: code
+    params:
+      depth: 1
+    passed:
+    - unit-tests
+    trigger: true
+  - task: integration-tests
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: karlkfi/concourse-dcind
+      inputs:
+      - name: code
+      run:
+        path: bash
+        args:
+        - -ceux
+        - |
+          # start containers
+          docker-compose -f code/example/integration.yml run tests
+          # stop and remove containers
+          docker-compose -f code/example/integration.yml down
+          # remove volumes
+          docker volume rm $(docker volume ls -q)
 ```
