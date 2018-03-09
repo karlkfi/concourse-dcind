@@ -93,14 +93,18 @@ await_docker() {
   until docker info &>/dev/null; do
     if (( SECONDS >= timeout )); then
       echo >&2 'Timed out trying to connect to docker daemon.'
-      echo >&2 '---DOCKERD LOGS---'
-      cat >&2 /var/log/dockerd.log
+      if [[ -f "${DOCKERD_LOG_FILE}" ]]; then
+        echo >&2 '---DOCKERD LOGS---'
+        cat >&2 "${DOCKERD_LOG_FILE}"
+      fi
       exit 1
     fi
     if [[ -f "${DOCKERD_PID_FILE}" ]] && ! kill -0 $(cat "${DOCKERD_PID_FILE}"); then
       echo >&2 'Docker daemon failed to start.'
-      echo >&2 '---DOCKERD LOGS---'
-      cat >&2 /var/log/dockerd.log
+      if [[ -f "${DOCKERD_LOG_FILE}" ]]; then
+        echo >&2 '---DOCKERD LOGS---'
+        cat >&2 "${DOCKERD_LOG_FILE}"
+      fi
       exit 1
     fi
     sleep 1
@@ -136,8 +140,9 @@ trap stop_docker EXIT
 sleep 1
 await_docker
 
+# do not exec, because exec disables traps
 if [[ "$#" != "0" ]]; then
-  exec "$@"
+  "$@"
 else
-  exec bash --login
+  bash --login
 fi
