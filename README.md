@@ -50,8 +50,9 @@ jobs:
       inputs:
       - name: code
       run:
-        path: bash
+        path: entrypoint.sh
         args:
+        - bash
         - -ceux
         - |
           # start containers
