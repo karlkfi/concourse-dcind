@@ -15,25 +15,42 @@ DOCKERD_PID_FILE="/tmp/docker.pid"
 DOCKERD_LOG_FILE="/tmp/docker.log"
 
 sanitize_cgroups() {
-  mkdir -p /sys/fs/cgroup
-  if ! mountpoint -q /sys/fs/cgroup; then
-    mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup /sys/fs/cgroup
+  local cgroup="/sys/fs/cgroup"
+
+  mkdir -p "${cgroup}"
+  if ! mountpoint -q "${cgroup}"; then
+    if ! mount -t tmpfs -o uid=0,gid=0,mode=0755 cgroup "${cgroup}"; then
+      echo >&2 "Could not make a tmpfs mount. Did you use --privileged?"
+      exit 1
+    fi
   fi
-  mount -o remount,rw /sys/fs/cgroup
+  mount -o remount,rw "${cgroup}"
+
+  # Skip AppArmor
+  # See: https://github.com/moby/moby/commit/de191e86321f7d3136ff42ff75826b8107399497
+  export container=docker
+
+  # Mount /sys/kernel/security
+  if [[ -d /sys/kernel/security ]] && ! mountpoint -q /sys/kernel/security; then
+    if ! mount -t securityfs none /sys/kernel/security; then
+      echo >&2 "Could not mount /sys/kernel/security."
+      echo >&2 "AppArmor detection and --privileged mode might break."
+    fi
+  fi
 
   sed -e 1d /proc/cgroups | while read sys hierarchy num enabled; do
-    if [ "${enabled}" != "1" ]; then
+    if [[ "${enabled}" != "1" ]]; then
       # subsystem disabled; skip
       continue
     fi
 
     grouping="$(cat /proc/self/cgroup | cut -d: -f2 | grep "\\<${sys}\\>")"
-    if [ -z "${grouping}" ]; then
+    if [[ -z "${grouping}" ]]; then
       # subsystem not mounted anywhere; mount it on its own
       grouping="${sys}"
     fi
 
-    mountpoint="/sys/fs/cgroup/${grouping}"
+    mountpoint="${cgroup}/${grouping}"
 
     mkdir -p "${mountpoint}"
 
@@ -42,16 +59,23 @@ sanitize_cgroups() {
       umount "${mountpoint}"
     fi
 
-    mount -n -t cgroup -o "$grouping" cgroup "${mountpoint}"
+    mount -n -t cgroup -o "${grouping}" cgroup "${mountpoint}"
 
-    if [ "${grouping}" != "${sys}" ]; then
-      if [ -L "/sys/fs/cgroup/${sys}" ]; then
-        rm "/sys/fs/cgroup/${sys}"
+    if [[ "${grouping}" != "${sys}" ]]; then
+      if [[ -L "${cgroup}/${sys}" ]]; then
+        rm "${cgroup}/${sys}"
       fi
 
-      ln -s "${mountpoint}" "/sys/fs/cgroup/${sys}"
+      ln -s "${mountpoint}" "${cgroup}/${sys}"
     fi
   done
+
+  # Initialize systemd cgroup if host isn't using systemd.
+  # Workaround for https://github.com/docker/for-linux/issues/219
+  if ! [[ -d /sys/fs/cgroup/systemd ]]; then
+    mkdir "${cgroup}/systemd"
+    mount -t cgroup -o none,name=systemd cgroup "${cgroup}/systemd"
+  fi
 }
 
 # Setup container environment and start docker daemon in the background.
