@@ -12,6 +12,7 @@ RUN apk --update --no-cache add \
         device-mapper \
         py-pip \
         iptables \
+        util-linux \
         ca-certificates \
         && \
     apk upgrade && \
