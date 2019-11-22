@@ -23,7 +23,7 @@ Unlike meAmidos/dcind, this image...
 ## Build
 
 ```bash
-docker build -t tomreeb/concourse-dgossind .
+make build -e VERSION=0.1
 ```
 
 ## Example
