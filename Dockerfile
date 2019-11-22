@@ -1,5 +1,9 @@
 FROM alpine:3.7
 
+LABEL maintainer="Tom Reeb <reebzor@gmail.com>" \
+      name="tomreeb/concourse-dgossind" \
+      version="0.1"
+
 ENV DOCKER_CHANNEL=stable \
     DOCKER_VERSION=17.12.1-ce \
     DOCKER_COMPOSE_VERSION=1.19.0 \
