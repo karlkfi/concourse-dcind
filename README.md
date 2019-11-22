@@ -22,7 +22,7 @@ Unlike meAmidos/dcind, this image...
 
 ## Build
 
-```
+```bash
 docker build -t tomreeb/concourse-dgossind .
 ```
 
