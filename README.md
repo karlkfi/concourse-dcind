@@ -1,8 +1,8 @@
-# Concourse DGOSS-in-Docker
+# Concourse Dgoss-in-Docker
 
 Optimized for use with [Concourse CI](http://concourse.ci/).
 
-The image is Alpine based, and includes Dgoss, Docker, Docker Compose, and Docker Squash, as well as Bash.
+The image is Alpine based, and includes [Dgoss](https://github.com/aelsabbahy/goss/tree/master/extras/dgoss), Docker, Docker Compose, and Docker Squash, as well as Bash.
 
 Image published to Docker Hub: [tomreeb/concourse-dgossind](https://hub.docker.com/r/tomreeb/concourse-dgossind/).
 
@@ -11,8 +11,9 @@ Inspired by [meAmidos/dcind](https://github.com/meAmidos/dcind),  [concourse/doc
 
 ## Features
 
-Unlike meAmidos/dcind, this image...
+This image...
 
+- Includes Dgoss, [Goss](https://github.com/aelsabbahy/goss/) for Docker.
 - Does not require the user to manually start docker.
 - Uses errexit, pipefail, and nounset.
 - Configures timeout (`DOCKERD_TIMEOUT`) on dockerd start to account for mis-configuration (docker log will be output).
